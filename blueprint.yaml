@@ -1,0 +1,69 @@
+blueprint:
+  name: Cover control with Tradfri open/close remote Z2M
+  description: |
+    Control a cover with an Ikea Tradfri open/close button remote over Zigbee2MQTT
+
+    Short press on ☼ button will open the cover.
+    Short press on ☰ button will close the cover.
+    Long press on ☼ or ☰  will stop the cover.
+  domain: automation
+  input:
+    remote:
+      name: Remote
+      description: "IKEA open/close remote to use"
+      selector:
+        entity:
+          domain: sensor
+          multiple: false
+    cover:
+      name: Cover
+      description: The cover to control
+      default:
+        entity_id: none
+      selector:
+        entity:
+          domain: cover
+trigger:
+- platform: state
+  entity_id:
+  - !input remote
+  to: 'open'
+  id: 'open'
+- platform: state
+  entity_id:
+  - !input remote
+  to: 'close'
+  id: 'close'
+- platform: state
+  entity_id:
+  - !input remote
+  to: 'stop'
+  id: 'stop'
+action:
+- choose:
+  - conditions:
+    - condition: trigger
+      id: 'open'
+    sequence:
+    - service: cover.set_cover_position
+      data:
+        position: '99'
+      target:
+        entity_id: !input cover
+  - conditions:
+    - condition: trigger
+      id: 'close'
+    sequence:
+    - service: cover.set_cover_position
+      data:
+        position: '0'
+      target:
+        entity_id: !input cover
+  - conditions:
+    - condition: trigger
+      id: 'stop'
+    sequence:
+    - service: cover.stop_cover
+      target: 
+        entity_id: !input cover
+mode: restart
